@@ -1,12 +1,12 @@
-def analyze_risk(port):
+def simulate_attack(port):
 
-    risks = {
-        21: ("FTP is insecure (no encryption)", "HIGH"),
-        22: ("SSH brute-force attack possible", "MEDIUM"),
-        23: ("Telnet sends data in plaintext", "HIGH"),
-        80: ("HTTP not secure (no encryption)", "LOW"),
-        445: ("SMB vulnerable to exploits", "HIGH"),
-        3389: ("RDP brute-force possible", "MEDIUM")
+    attacks = {
+        21: "Attacker can login anonymously using FTP",
+        22: "Attacker can try SSH brute-force attack",
+        23: "Attacker can sniff credentials (Telnet)",
+        80: "Attacker can intercept data (Man-in-the-middle)",
+        445: "Attacker can exploit SMB (EternalBlue)",
+        3389: "Attacker can brute-force RDP login"
     }
 
-    return risks.get(port, ("No major risk", "LOW"))
+    return attacks.get(port, "No major attack possible")
