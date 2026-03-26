@@ -2,18 +2,87 @@
 <html>
 <head>
     <title>Port Scanner</title>
+
+    <style>
+        body {
+            background: #0d1117;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            font-size: 40px;
+            margin-top: 30px;
+        }
+
+        h2 {
+            color: red;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2ea043;
+        }
+
+        .result-box {
+            margin: 20px auto;
+            padding: 15px;
+            width: 300px;
+            background: #161b22;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .port {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+
+        .risk {
+            color: #f85149;
+        }
+
+        .attack {
+            color: #d29922;
+        }
+    </style>
 </head>
-<body style="background:black; color:white; text-align:center;">
+
+<body>
 
 <h1>🔐 Network Port Scanner</h1>
-<h2 style="color:red;">⚠ Risk Level Analysis</h2>
+
+<h2>⚠ Risk Level Analysis</h2>
+
 <form method="POST">
     <input type="text" name="target" placeholder="Enter IP or Website">
     <button type="submit">Scan</button>
 </form>
 
 {% for item in result %}
-<p>Port: {{item.port}} | Risk: {{item.risk}}</p>
+<div class="result-box">
+    <p class="port">Port: {{item.port}}</p>
+    <p class="risk">Risk: {{item.risk}}</p>
+    <p class="attack">Attack: {{item.attack}}</p>
+</div>
 {% endfor %}
 
 </body>
