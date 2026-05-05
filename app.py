@@ -3,9 +3,7 @@ import time
 import ssl
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Flask, render_template, request
-from attack_simulator import simulate_attack
-from risk_analyzer import analyze_risk
-import ipaddress
+
 app = Flask(__name__)
 
 # ================= FUNCTIONS =================
@@ -26,8 +24,8 @@ def grab_banner(target, port):
 
             # For HTTP/HTTPS ports, send a proper request
             if port in [80, 443]:
-                http_request = f"GET / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: PortScan-Pro\r\nConnection: close\r\n\r\n"
-                s.sendall(http_request.encode())
+                request = f"GET / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: PortScan-Pro\r\nConnection: close\r\n\r\n"
+                s.sendall(request.encode())
             else:
                 # For other services, send simple newline
                 s.sendall(b"\r\n")
@@ -48,9 +46,10 @@ def scan_single_port(target, port, timeout=1.5):
 
             if result == 0:
                 banner = grab_banner(target, port)
-                if banner and len(banner) > 300:
-                    banner = banner[:300] + "..."
                 return port, "OPEN", banner
+            else:
+                return port, "CLOSED", None
+
     except Exception:
         return port, "FILTERED", None
 
@@ -95,12 +94,7 @@ def get_cve_info(port):
     }
     return cve_map.get(port, "-")
 
-def is_safe_target(host):
-    try:
-        ip = ipaddress.ip_address(host)
-        return not ip.is_private
-    except ValueError:
-        return True  # it's a domain name, allow it
+
 # ================= ROUTE =================
 
 @app.route("/", methods=["GET", "POST"])
@@ -114,8 +108,7 @@ def index():
             target_ip = socket.gethostbyname(target)
         except Exception:
             return render_template("index.html", error="Invalid target or could not resolve hostname")
-        if not is_safe_target(target_ip):
-            return render_template("index.html", error="Scanning private/internal IPs is not allowed.")
+
         port_input = request.form.get("ports", "21,22,23,25,53,80,110,139,143,443,445,3306,3389,8080")
         ports = parse_ports(port_input)
 
@@ -132,13 +125,9 @@ def index():
                 if status == "OPEN":
                     risk = risk_level(port)
                     cve = get_cve_info(port)
-                    attack_info = simulate_attack(port)
-                    risk_detail, _ = analyze_risk(port)
                 else:
                     risk = "-"
                     cve = "-"
-                    attack_info = "-"
-                    risk_detail = "-"
 
                 results.append({
                     "port": port,
@@ -146,10 +135,8 @@ def index():
                     "status": status,
                     "banner": banner,
                     "risk": risk,
-                    "cve": cve,
-                    "attack": attack_info,
-                    "risk_detail": risk_detail
-            })
+                    "cve": cve
+                })
 
         duration = round(time.time() - start, 2)
         open_count = sum(1 for r in results if r["status"] == "OPEN")
